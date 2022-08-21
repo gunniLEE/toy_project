@@ -22,7 +22,8 @@ const SearchResultImage = ({ isAuthorized, setIsAuthorized, keyword, setKeyword 
     }
     const [result, setResult] = useState<Result>({ meta: {}, data: [] });
     const [modalIsOpen, setModalIsOpen] = useState<Array<boolean>>([]);
-    const [changedKeyword, setChangedKeyword] = useState<string>(decodeURI(search.split('query=')[1]));
+    const [keywordForDetectOfSetPageEffect, setKeywordForDetectOfSetPageEffect] = useState<string>(decodeURI(search.split('query=')[1]));
+    const [keywordForDetectOfFetchEffect, setKeywordForDetectOfFetchEffect] = useState<string>(decodeURI(search.split('query=')[1]));
     const openModal = (idx: number): void => {
         const newModalIsOpen = [...modalIsOpen];
         newModalIsOpen[idx] = true;
@@ -73,6 +74,7 @@ const SearchResultImage = ({ isAuthorized, setIsAuthorized, keyword, setKeyword 
     ];
     const [order, setOrder] = useState<string>('score');
     const [orderIsActive, setOrderIsActive] = useState<Array<boolean>>([true, false, false]);
+    const [orderForDetectOfFetchEffect, setOrderForDetectOfFetchEffect] = useState<string>('score');
 
     // for type
     const listOfResultDataTypeMenu = [
@@ -83,11 +85,21 @@ const SearchResultImage = ({ isAuthorized, setIsAuthorized, keyword, setKeyword 
     ];
 
     useEffect(() => {
-        setResult({ meta: {}, data: [] });
         setKeyword(decodeURI(search.split('query=')[1]));
-        setChangedKeyword(decodeURI(search.split('query=')[1]));
+        setKeywordForDetectOfSetPageEffect(decodeURI(search.split('query=')[1]));
+
+        setOrder('score');
+        setOrderIsActive([true, false, false]);
+    }, [search]);
+
+    useEffect(() => {
+        setResult({ meta: {}, data: [] });
+        setKeywordForDetectOfFetchEffect(decodeURI(search.split('query=')[1]));
+
+        setOrderForDetectOfFetchEffect(order);
+
         setPage(1);
-    }, [search, order]);
+    }, [order, keywordForDetectOfSetPageEffect]);
 
     useEffect(() => {
         const fetchData = (): void => { // 나중에 useCallback으로 바꿀까?
@@ -116,12 +128,12 @@ const SearchResultImage = ({ isAuthorized, setIsAuthorized, keyword, setKeyword 
         };
 
         fetchData();
-    }, [page, changedKeyword]);
+    }, [keywordForDetectOfFetchEffect, orderForDetectOfFetchEffect, page]);
 
     const imagesOnLoad = (idx: number, arr: any) => {
         const maxCount = listRef.current.dataset.columns;
 
-        function getHeight(item: HTMLLIElement) {
+        const getHeight = (item: HTMLLIElement) => {
             let elmMargin = 0;
             let elmHeight = Math.ceil(item.offsetHeight);
 
@@ -130,7 +142,7 @@ const SearchResultImage = ({ isAuthorized, setIsAuthorized, keyword, setKeyword 
 
             return elmHeight + elmMargin;
         }
-        function calculateMasonryHeight(itemsRef: any) {
+        const calculateMasonryHeight = (itemsRef: any) => {
             let index = 0;
             const columns: any = [];
 
